@@ -184,7 +184,7 @@ app.layout = html.Div(children=[
     ),
     html.Div(id='label-graph-slider', children='Type of Models : 0 - PTH , 1 - Onnx, 2 - TensorRT', style={'margin-top': 5, 'margin-left': 1500}),
     dcc.Graph(id='graph-with-slider'),
-    html.Div(id='slider-drag-output', style={'margin-top': 5, 'margin-left': 100}),
+    html.Div(id='slider-drag-output', style={'margin-top': 5, 'margin-left': 20}),
     dcc.Slider(
         id='input-slider',
         min=df['frame_idxs'].min(),
