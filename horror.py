@@ -182,9 +182,9 @@ app.layout = html.Div(children=[
         id='graph_distance',
         figure=fig3
     ),
-    html.Div(id='label-graph-slider', children='Type of Models : 0 - PTH , 1 - Onnx, 2 - TensorRT'),# style={'marginTop': 5, 'marginLeft': 1500}),
+    html.Div(id='label-graph-slider', children='Type of Models : 0 - PTH , 1 - Onnx, 2 - TensorRT', style={'margin-top': 5, 'margin-left': 1500}),
     dcc.Graph(id='graph-with-slider'),
-    html.Div(id='slider-drag-output'),# style={'marginTop': 5, 'marginLeft': 1400}),
+    html.Div(id='slider-drag-output', style={'margin-top': 5, 'margin-left': 1400}),
     dcc.Slider(
         id='input-slider',
         min=df['frame_idxs'].min(),
@@ -193,7 +193,7 @@ app.layout = html.Div(children=[
         # marks={str(idx): str(idx) for idx in df['frame_idxs'].unique()[:100]},
         step=1
     ),
-    html.Div(id='label-rslider', children='Columns:'),#, style={'marginTop': 5, 'marginLeft': 20}),
+    html.Div(id='label-rslider', children='Columns:', style={'margin-top': 5, 'margin-left': 20}),
     dcc.RangeSlider(
         id='range-slider',
         min=0,
