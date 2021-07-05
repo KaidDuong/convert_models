@@ -185,8 +185,8 @@ def create_tab(app):
         if json_path is not None:
             df = pd.read_json(json_path, orient='split')
             if tab == 'tab-1':
-                draw_para_graph(df)
                 fig = draw_scater_plot(df)
+                draw_para_graph(df)
                 return [
                 dcc.Graph(
                     id='graph_distance',
