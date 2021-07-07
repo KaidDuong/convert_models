@@ -111,7 +111,7 @@ def store_data():
             #draw_para_graph(cleaned_df)
             return cleaned_df.to_json(date_format='iso', orient='split')
         else:
-            url = "https://drive.google.com/file/d/19EOjxUEyEp7gje2LmD9KhapdyChGWGAi/view?usp=sharing"
+            url = "https://drive.google.com/file/d/19_jYZqtqPNcVmBID7duSLUCJFkz01ECr/view?usp=sharing"
 
             file_id = url.split('/')[-2]
             dwn_url = 'https://drive.google.com/uc?export=download&id=' + file_id
@@ -183,7 +183,7 @@ def draw_scater_plot(df):
             color="RebeccaPurple"
         )
     )
-    fig3.update_yaxes(type="linear", range=[-1, 1])
+    fig3.update_yaxes(type="log", range=[-5, 0.5])
     return fig3
 def create_table(df):
     return html.Div([
@@ -198,7 +198,6 @@ def create_table(df):
 
 
 def create_tab():
-
     @app.callback(Output('tabs-content-props', 'children'),
                   Input('tabs-styled-with-props', 'value'),
                   Input('intermediate-value', 'data')
