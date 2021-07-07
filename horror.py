@@ -14,6 +14,8 @@ import plotly.graph_objects as go
 import dash_table
 import base64
 import io
+from scipy.spatial.distance import cosine
+
 
 def create_layout(app):
     app.layout = html.Div([dcc.Upload(
@@ -49,7 +51,7 @@ def create_layout(app):
     ])
     return app
 
-def draw_para_graph(df):
+def draw_para_graph():
     @app.callback(Output('slider-drag-output', 'children'),
                   Input('input-slider', 'value'))
     def display_value(value):
@@ -58,35 +60,41 @@ def draw_para_graph(df):
     @app.callback(
         Output('graph-with-slider', 'figure'),
         Input('input-slider', 'value'),
-        Input('range-slider', 'value'))
-    def update_figure(selected_frame, select_cols):
-        filtered_df = df[df.frame_idxs == selected_frame]
-        columns = [f"feature_{i}" for i in range(select_cols[0], select_cols[1])]
-        columns.append("model_id")
-        # labels = {k: v for k, v in zip(columns, ['Drawings', 'Hentai', 'Neutral', 'Porn', 'Sexy', 'Model IDs'])}
-        fig = px.parallel_coordinates(filtered_df, color='model_id',
+        Input('range-slider', 'value'),
+        Input('intermediate-value', 'data'))
+    def update_figure(selected_frame, select_cols, json_path):
+        if json_path is not None:
+            df = pd.read_json(json_path, orient='split')
+            filtered_df = df[df.frame_idxs == selected_frame]
+            columns = [f"feature_{i}" for i in range(select_cols[0], select_cols[1])]
+            columns.append("model_id")
+            # labels = {k: v for k, v in zip(columns, ['Drawings', 'Hentai', 'Neutral', 'Porn', 'Sexy', 'Model IDs'])}
+            fig = px.parallel_coordinates(filtered_df, color='model_id',
                                       dimensions=columns,
                                       color_continuous_scale=px.colors.diverging.Armyrose,
                                       color_continuous_midpoint=1)
-        fig.update_layout(
-            font=dict(
-                family="Courier New, monospace",
-                size=18,
-                color="RebeccaPurple"
+            fig.update_layout(
+                font=dict(
+                    family="Courier New, monospace",
+                    size=18,
+                    color="RebeccaPurple"
+                )
             )
-        )
-        fig.update_layout(transition_duration=500)
+            fig.update_layout(transition_duration=500)
 
-        return fig
+            return fig
 
     @app.callback(
         Output('input-slider', 'value'),
-        Input('graph_distance', 'hoverData'))
-    def update_slider(hoverData):
+        Input('graph_distance', 'hoverData'),
+        Input('intermediate-value', 'data'))
+    def update_slider(hoverData, json_path):
         if hoverData is not None:
             return hoverData["points"][0]["x"]
         else:
-            return df['frame_idxs'].min()
+            if json_path is not None:
+                df = pd.read_json(json_path, orient='split')
+                return df['frame_idxs'].min()
 
 
 
@@ -125,26 +133,30 @@ def parse_contents(contents, filename):
 
 
 def draw_scater_plot(df):
-    columns = [f"feature_{i}" for i in range(255)]
+    columns = [f"feature_{i}" for i in range(256)]
     columns.append("model_id")
     dff = df[columns]
-    df2 = pd.DataFrame(np.sqrt(np.sum(
-        np.square(dff[dff.model_id == 0].iloc[:, :-1].values[:-1] - dff[dff.model_id == 1].iloc[:, :-1].values[:-1]),
-        axis=1)), columns=["l2_distance"])
-    df3 = pd.DataFrame(np.sqrt(np.sum(
-        np.square(dff[dff.model_id == 0].iloc[:, :-1].values[:-1] - dff[dff.model_id == 2].iloc[:, :-1].values[:-1]),
-        axis=1)), columns=["l2_distance"])
-    df4 = pd.DataFrame(np.sqrt(np.sum(
-        np.square(dff[dff.model_id == 1].iloc[:, :-1].values[:-1] - dff[dff.model_id == 2].iloc[:, :-1].values[:-1]),
-        axis=1)), columns=["l2_distance"])
-
+    # df2 = pd.DataFrame(np.sqrt(np.sum(
+    #     np.square(dff[dff.model_id == 0].iloc[:, :-1].values[:-1] - dff[dff.model_id == 1].iloc[:, :-1].values[:-1]),
+    #     axis=1)), columns=["l2_distance"])
+    # df3 = pd.DataFrame(np.sqrt(np.sum(
+    #     np.square(dff[dff.model_id == 0].iloc[:, :-1].values[:-1] - dff[dff.model_id == 2].iloc[:, :-1].values[:-1]),
+    #     axis=1)), columns=["l2_distance"])
+    # df4 = pd.DataFrame(np.sqrt(np.sum(
+    #     np.square(dff[dff.model_id == 1].iloc[:, :-1].values[:-1] - dff[dff.model_id == 2].iloc[:, :-1].values[:-1]),
+    #     axis=1)), columns=["l2_distance"])
+    df2 = pd.DataFrame(list(map(cosine, dff[dff.model_id == 0].iloc[:, :-1].values, dff[dff.model_id == 1].iloc[:, :-1].values)),
+                       columns=["cosine_similarity"])
+    df3 = pd.DataFrame(list(map(cosine, dff[dff.model_id == 0].iloc[:, :-1].values, dff[dff.model_id == 2].iloc[:, :-1].values)),
+                       columns=["cosine_similarity"])
+    df4 = pd.DataFrame(list(map(cosine, dff[dff.model_id == 1].iloc[:, :-1].values , dff[dff.model_id == 2].iloc[:, :-1].values)), columns=["cosine_similarity"])
     fig3 = go.Figure()
     # Add traces
-    fig3.add_trace(go.Scatter(x=df2.index.values, y=df2.l2_distance.values,
+    fig3.add_trace(go.Scatter(x=df2.index.values, y=(1 - df2.cosine_similarity.values),
                               name='Onnx vs PTH', mode="markers"))
-    fig3.add_trace(go.Scatter(x=df3.index.values, y=df3.l2_distance.values,
+    fig3.add_trace(go.Scatter(x=df3.index.values, y=( 1- df3.cosine_similarity.values),
                               name='TensorRT vs PTH', mode="markers"))
-    fig3.add_trace(go.Scatter(x=df4.index.values, y=df3.l2_distance.values,
+    fig3.add_trace(go.Scatter(x=df4.index.values, y=(1-df3.cosine_similarity.values),
                               name='Onnx vs TensorRT', mode="markers"))
     fig3.update_layout(
         title={
@@ -162,7 +174,7 @@ def draw_scater_plot(df):
             color="RebeccaPurple"
         )
     )
-    fig3.update_yaxes(type="log", range=[-2, 0.2])
+    fig3.update_yaxes(type="linear", range=[-1, 1])
     return fig3
 def create_table(df):
     return html.Div([
@@ -186,7 +198,6 @@ def create_tab(app):
             df = pd.read_json(json_path, orient='split')
             if tab == 'tab-1':
                 fig = draw_scater_plot(df)
-                draw_para_graph(df)
                 return [
                 dcc.Graph(
                     id='graph_distance',
@@ -222,7 +233,7 @@ def create_tab(app):
             ]
             elif tab == 'tab-2':
                 return create_table(df)
-
+    draw_para_graph()
     return app
 
 
