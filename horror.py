@@ -15,7 +15,8 @@ import dash_table
 import base64
 import io
 from scipy.spatial.distance import cosine
-
+import requests
+from io import StringIO
 
 def create_layout(app):
     app.layout = html.Div([dcc.Upload(
@@ -99,7 +100,7 @@ def draw_para_graph():
 
 
 
-def store_data(app):
+def store_data():
     @app.callback(Output('intermediate-value', 'data'),
                   Input('upload-data', 'contents'),
                   State('upload-data', 'filename'))
@@ -109,7 +110,15 @@ def store_data(app):
             cleaned_df = parse_contents(contents[0], filename[0])
             #draw_para_graph(cleaned_df)
             return cleaned_df.to_json(date_format='iso', orient='split')
-    return app
+        else:
+            url = "https://drive.google.com/file/d/19EOjxUEyEp7gje2LmD9KhapdyChGWGAi/view?usp=sharing"
+
+            file_id = url.split('/')[-2]
+            dwn_url = 'https://drive.google.com/uc?export=download&id=' + file_id
+            url2 = requests.get(dwn_url).text
+            csv_raw = StringIO(url2)
+            cleaned_df = pd.read_csv(csv_raw)
+            return cleaned_df.to_json(date_format='iso', orient='split')
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
 
@@ -160,7 +169,7 @@ def draw_scater_plot(df):
                               name='Onnx vs TensorRT', mode="markers"))
     fig3.update_layout(
         title={
-            'text': "The difference between the other Models ",
+            'text': "The difference between the other Models (Cosine similarity metric) ",
             'y': 0.9,
             'x': 0.5,
             'xanchor': 'center',
@@ -188,7 +197,8 @@ def create_table(df):
 
 
 
-def create_tab(app):
+def create_tab():
+
     @app.callback(Output('tabs-content-props', 'children'),
                   Input('tabs-styled-with-props', 'value'),
                   Input('intermediate-value', 'data')
@@ -234,7 +244,6 @@ def create_tab(app):
             elif tab == 'tab-2':
                 return create_table(df)
     draw_para_graph()
-    return app
 
 
 external_stylesheets = [
@@ -245,8 +254,8 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
 app.config.suppress_callback_exceptions = True
 app = create_layout(app)
-app = store_data(app)
-app = create_tab(app)
+store_data()
+create_tab()
 if __name__ == '__main__':
 
     app.run_server(debug=True)
