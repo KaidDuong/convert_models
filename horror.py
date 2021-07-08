@@ -111,8 +111,7 @@ def store_data():
             #draw_para_graph(cleaned_df)
             return cleaned_df.to_json(date_format='iso', orient='split')
         else:
-            url = "https://drive.google.com/file/d/19_jYZqtqPNcVmBID7duSLUCJFkz01ECr/view?usp=sharing"
-            #url = "https://drive.google.com/file/d/15B-g2EZuqoAnEQnWsa5y33gFZZF0Hg__/view?usp=sharing"
+            url = "https://drive.google.com/file/d/1ioul_WntISQxRoQHvXvPxhIFXEtv66Au/view?usp=sharing"
 
             file_id = url.split('/')[-2]
             dwn_url = 'https://drive.google.com/uc?export=download&id=' + file_id
