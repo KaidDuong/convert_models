@@ -183,7 +183,7 @@ def draw_scater_plot(df):
             color="RebeccaPurple"
         )
     )
-    fig3.update_yaxes(type="linear", range=[-2, 2])
+    #fig3.update_yaxes(type="linear", range=[, 2])
     return fig3
 def create_table(df):
     return html.Div([
