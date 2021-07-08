@@ -112,6 +112,7 @@ def store_data():
             return cleaned_df.to_json(date_format='iso', orient='split')
         else:
             url = "https://drive.google.com/file/d/19_jYZqtqPNcVmBID7duSLUCJFkz01ECr/view?usp=sharing"
+            #url = "https://drive.google.com/file/d/15B-g2EZuqoAnEQnWsa5y33gFZZF0Hg__/view?usp=sharing"
 
             file_id = url.split('/')[-2]
             dwn_url = 'https://drive.google.com/uc?export=download&id=' + file_id
@@ -183,13 +184,19 @@ def draw_scater_plot(df):
             color="RebeccaPurple"
         )
     )
-    fig3.update_yaxes(type="log", range=[-5, 0.5])
+    fig3.update_yaxes(type="linear", range=[-2, 2])
     return fig3
 def create_table(df):
     return html.Div([
         dash_table.DataTable(
             data=df.to_dict('records'),
-            columns=[{'name': i, 'id': i} for i in df.columns]
+            columns=[{'name': i, 'id': i} for i in df.columns[::-1]],
+            page_action='native',
+            page_current=0,
+            page_size=10,
+            hidden_columns=['Unnamed: 0'],
+            sort_mode='multi',
+            sort_action="native",
         ),
 
         html.Hr(),  # horizontal line
